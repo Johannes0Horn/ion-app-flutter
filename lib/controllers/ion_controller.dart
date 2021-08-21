@@ -10,7 +10,8 @@ class IonController extends GetxController {
   final String _uid = Uuid().v4();
   IonBaseConnector? _baseConnector;
   IonAppBiz? _biz;
-  IonSDKSFU? _sfu;
+  Client? _clientSFU;
+  GRPCWebSignal? _signal;
 
   String get sid => _sid;
 
@@ -20,7 +21,7 @@ class IonController extends GetxController {
 
   IonAppBiz? get biz => _biz;
 
-  IonSDKSFU? get sfu => _sfu;
+  Client? get sfu => _clientSFU;
 
   @override
   void onInit() async {
@@ -35,23 +36,19 @@ class IonController extends GetxController {
     return _prefs!;
   }
 
-  setup(host) {
+  setupBIZ(host) {
     _baseConnector = new IonBaseConnector(host);
     _biz = new IonAppBiz(_baseConnector!);
-    _sfu = new IonSDKSFU(_baseConnector!);
   }
 
-  connect() async {
-    await _biz!.connect();
-    await _sfu!.connect();
+  connectSFU(host) async {
+    _signal = GRPCWebSignal(host);
+    _clientSFU = await Client.create(sid: _sid, uid: _uid, signal: _signal!);
   }
 
   joinBIZ(String roomID, String displayName) async {
+    _sid = roomID;
     _biz!.join(sid: roomID, uid: _uid, info: {'name': '$displayName'});
-  }
-
-  joinSFU(String roomID, String displayName) async {
-    _sfu!.join(roomID, displayName);
   }
 
   close() async {
